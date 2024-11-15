@@ -109,7 +109,11 @@ function tank.tankRoutine()
         while mq.TLO.Me.CombatState() == "COMBAT" and target and mq.TLO.Target.ID() == mq.TLO.Target.ID() and not mq.TLO.Target.Dead() do
             debugPrint("Combat state: ", mq.TLO.Me.CombatState())
 
-            if not mq.TLO.Target() or mq.TLO.Target() and (mq.TLO.Target.Dead() or mq.TLO.Target.PctHPs() < 0) then
+            if mq.TLO.Target() and target and (mq.TLO.Target.ID() ~= target.ID or mq.TLO.Target.Dead() == true or (mq.TLO.Target.PctHPs() ~= nil and mq.TLO.Target.PctHPs() < 0)) then
+                mq.cmdf("/target id %d", target.ID())
+                mq.delay(200)
+                debugPrint("Target set to:", target.CleanName())
+            elseif not mq.TLO.Target() or mq.TLO.Target() and (mq.TLO.Target.Dead() or mq.TLO.Target.PctHPs() < 0) then
                 debugPrint("Target is dead. Exiting combat loop.")
                 break
             end
@@ -120,7 +124,7 @@ function tank.tankRoutine()
                 mq.delay(100)
             end
 
-            if mq.TLO.Me.PctAggro() < 100 then
+            if mq.TLO.Target() and mq.TLO.Me.PctAggro() < 100 then
                 if nav.campLocation then
                     local playerX, playerY = mq.TLO.Me.X(), mq.TLO.Me.Y()
                     local campX = tonumber(nav.campLocation.x) or 0
@@ -145,7 +149,7 @@ function tank.tankRoutine()
                 end
             end
 
-            if not utils.FacingTarget() and not mq.TLO.Target.Dead() and mq.TLO.Target.LineOfSight() then
+            if mq.TLO.Target() and not utils.FacingTarget() and not mq.TLO.Target.Dead() and mq.TLO.Target.LineOfSight() then
                 debugPrint("Facing target:", mq.TLO.Target.CleanName())
                 mq.cmd("/squelch /face id " .. mq.TLO.Target.ID())
                 mq.delay(100)
@@ -153,19 +157,19 @@ function tank.tankRoutine()
 
             if mq.TLO.Target() and mq.TLO.Target.Distance() <= gui.tankRange and mq.TLO.Target.LineOfSight() then
 
-                if mq.TLO.Target.Distance() < lowerBound then
+                if mq.TLO.Target() and mq.TLO.Target.Distance() < lowerBound then
                     debugPrint("Target too close; moving back.")
                     mq.cmdf("/stick moveback %s", stickDistance)
                     mq.delay(100)
                 end
 
-                if mq.TLO.Me.AbilityReady("Taunt")() and mq.TLO.Me.PctAggro() < 100 then
+                if mq.TLO.Target() and mq.TLO.Me.AbilityReady("Taunt")() and mq.TLO.Me.PctAggro() < 100 then
                     debugPrint("Using Taunt ability.")
                     mq.cmd("/doability Taunt")
                     mq.delay(100)
                 end
 
-                if mq.TLO.Me.AbilityReady("Slam")() and mq.TLO.Me.Secondary() == "0" and mq.TLO.Me.Race() == "Ogre" then
+                if mq.TLO.Target() and mq.TLO.Me.AbilityReady("Slam")() and mq.TLO.Me.Race() == "Ogre" then
                     debugPrint("Using Slam ability.")
                     mq.cmd("/doability Slam")
                     mq.delay(100)

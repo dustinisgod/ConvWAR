@@ -34,10 +34,14 @@ function assist.assistRoutine()
         if gui.stickFront then
             mq.cmd('/nav stop')
             mq.delay(100)
+            mq.cmd("/stick moveback 0")
+            mq.delay(100)
             mq.cmdf("/stick front %d uw", gui.stickDistance)
             mq.delay(100)
         elseif gui.stickBehind then
             mq.cmd('/nav stop')
+            mq.delay(100)
+            mq.cmd("/stick moveback 0")
             mq.delay(100)
             mq.cmdf("/stick behind %d uw", gui.stickDistance)
             mq.delay(100)
@@ -69,7 +73,7 @@ function assist.assistRoutine()
         if mq.TLO.Target() and mq.TLO.Target.Distance() <= gui.assistRange then
             local slam = "Slam"
 
-            if mq.TLO.Target() and mq.TLO.Me.AbilityReady(slam) and mq.TLO.Me.Secondary() == "0" and mq.TLO.Me.Race() == "Ogre"  then
+            if mq.TLO.Target() and mq.TLO.Me.AbilityReady(slam) and mq.TLO.Me.Race() == "Ogre"  then
                 mq.cmdf('/doability %s', slam)
             end
         end
