@@ -10,7 +10,7 @@ utils.IsUsingCast = false
 utils.IsUsingMelee = false
 
 utils.tankConfig = {}
-local tankConfigPath = mq.configDir .. '/' .. 'ConvWAR_tank_ignore_list.lua'
+local tankConfigPath = mq.configDir .. '/' .. 'Conv_tank_ignore_list.lua'
 
 local DEBUG_MODE = false
 -- Debug print helper function

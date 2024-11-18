@@ -21,6 +21,7 @@ mq.cmd('/assist off')
 mq.imgui.init('controlGUI', gui.controlGUI)
 
 commands.init()
+commands.initALL()
 
 local toggleboton = gui.botOn or false
 
