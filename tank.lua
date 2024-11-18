@@ -46,7 +46,7 @@ local function buildMobQueue(range)
 end
 
 function tank.tankRoutine()
-    if not gui.botOn and not gui.tankMelee then
+    if not gui.botOn and not gui.tankOn then
         debugPrint("Bot or melee mode is off; exiting tankRoutine.")
         return
     end

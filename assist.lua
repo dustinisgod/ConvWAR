@@ -6,7 +6,7 @@ local assist = {}
 
 function assist.assistRoutine()
 
-    if not gui.botOn and not gui.assistMelee then
+    if not gui.botOn and not gui.assistOn then
         return
     end
 

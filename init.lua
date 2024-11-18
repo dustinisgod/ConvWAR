@@ -47,9 +47,9 @@ while gui.controlGUI do
 
         utils.monitorNav()
 
-        if gui.tankMelee then
+        if gui.tankOn then
             tank.tankRoutine()
-        elseif gui.assistMelee then
+        elseif gui.assistOn then
             assist.assistRoutine()
         end
     end

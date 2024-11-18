@@ -107,14 +107,14 @@ end
 local function setMeleeOptions(meleeOption, stickOption, stickDistance)
     -- Set Assist Melee on or off based on the first argument
     if meleeOption == "on" then
-        gui.assistMelee = true
+        gui.assistOn = true
         print("Assist Melee is now enabled")
     elseif meleeOption == "off" then
-        gui.assistMelee = false
+        gui.assistOn = false
         print("Assist Melee is now disabled")
     elseif meleeOption == "front" or meleeOption == "behind" then
         -- Set Stick position based on 'front' or 'behind' and optionally set distance
-        gui.assistMelee = true
+        gui.assistOn = true
         if meleeOption == "front" then
             gui.stickFront = true
             gui.stickBehind = false
