@@ -159,14 +159,13 @@ local function setTankIgnore(scope, action)
         print(string.format("'%s' has been removed from the %s.", targetName, scopeText))
 
     else
-        print("Error: Invalid action. Usage: /convPAL tankignore zone/global add/remove")
+        print("Error: Invalid action. Usage: /convWAR tankignore zone/global add/remove")
     end
 end
 
--- Function to handle tank/assist and their ranges
-local function setTankorAssist(command, mode, value, optionalArg1, optionalArg2)
+local function setTankorAssist(command, mode, value, optionalArg)
     if command == "tank" or command == "assist" then
-        -- Enable/Disable melee mode for tank or assist
+        -- Handle enabling/disabling melee for tank or assist
         if value == "on" then
             if command == "tank" then
                 gui.tankOn = true
@@ -185,23 +184,27 @@ local function setTankorAssist(command, mode, value, optionalArg1, optionalArg2)
                 gui.assistOn = false
                 print("Assist Melee is now disabled.")
             end
-        elseif command == "assist" and tonumber(optionalArg1) and tonumber(optionalArg2) then
-            gui.assistRange = tonumber(optionalArg1)
-            print(string.format("Assist Range is now set to %d.", gui.assistRange))
-            gui.assistPercent = tonumber(optionalArg2)
+        elseif command == "assist" and tonumber(optionalArg) then
+            gui.assistPercent = tonumber(optionalArg)
             print(string.format("Assist Percent is now set to %d%%.", gui.assistPercent))
-            gui.assistOn = true
-            gui.tankOn = false
-        elseif command == "tank" and tonumber(optionalArg1) then
+        else
+            print("Usage: /convWAR " .. command .. " on/off or /convWAR assist gui.assistRange [assistPercent]")
+        end
+    elseif command == "tankrange" or command == "assistrange" then
+        -- Handle range adjustments
+        if tonumber(value) then
+            if command == "assistrange" then
+                gui.assistRange = tonumber(value)
+                print(string.format("Assist Range is now set to %d.", gui.assistRange))
+            elseif command == "tankrange" then
                 gui.tankRange = tonumber(value)
                 print(string.format("Tank Range is now set to %d.", gui.tankRange))
-                gui.tankOn = true
-                gui.assistOn = false
+            end
         else
-            print(string.format("Usage: /convPAL %s [range_value]", command))
+            print(string.format("Usage: /convWAR %s [range_value]", command))
         end
     else
-        print("Usage: /convPAL tank/assist on/off or /convPAL tank [range_value] or /convPAL assist [name] [range] [percent]")
+        print("Usage: /convWAR tank/assist on/off or /convWAR tankrange/assistrange [range_value] or /convWAR assist [range] [percent]")
     end
 end
 
@@ -226,14 +229,12 @@ local function commandHandler(command, ...)
         setSwitchWithMA(args[1])
     elseif command == "tank" or command == "assist" or command == "tankrange" or command == "assistrange" then
         if args[1] then
-            -- Handle assist with optional range and percentage
+            -- If the command is 'assist', check for an optional third argument
             if command == "assist" and args[2] then
-                setTankorAssist(command, nil, args[1], args[2], args[3]) -- Pass command, mode, value, optional assistPercent
+                setTankorAssist(command, nil, args[1], args[2]) -- Pass the command, mode, value, and the optional assistPercent
             else
-                setTankorAssist(command, nil, args[1]) -- Pass command, mode, and value only
+                setTankorAssist(command, nil, args[1]) -- Pass the command, mode, and value only
             end
-        else
-            print(string.format("Usage: /convPAL %s on/off or /convPAL %s [range_value] [percent]", command, command))
         end
     elseif command == "chase" then
         local chaseValue = args[1]
