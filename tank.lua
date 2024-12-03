@@ -2,7 +2,6 @@ local mq = require('mq')
 local gui = require('gui')
 local utils = require('utils')
 local nav = require('nav')
-local spells = require('spells')
 
 local DEBUG_MODE = false
 -- Debug print helper function
@@ -56,60 +55,6 @@ local function buildMobQueue(range)
 
     debugPrint("Mob queue built with", #mobs, "mobs in range")
     return mobs
-end
-
-local function hasEnoughMana(spellName)
-    local manaCheck = spellName and mq.TLO.Me.CurrentMana() >= mq.TLO.Spell(spellName).Mana()
-    debugPrint("Checking mana for spell:", spellName, "Has enough mana:", manaCheck)
-    return manaCheck
-end
-
-local function inRange(spellName)
-    local rangeCheck = false
-
-    if mq.TLO.Target() and spellName then
-        local targetDistance = mq.TLO.Target.Distance()
-        local spellRange = mq.TLO.Spell(spellName) and mq.TLO.Spell(spellName).Range()
-
-        if targetDistance and spellRange then
-            rangeCheck = targetDistance <= spellRange
-        else
-            debugPrint("DEBUG: Target distance or spell range is nil for spell:", spellName)
-        end
-    else
-        if not mq.TLO.Target() then
-            debugPrint("DEBUG: No target available for range check.")
-        end
-        if not spellName then
-            debugPrint("DEBUG: Spell name is nil.")
-        end
-    end
-
-    debugPrint("DEBUG: Checking range for spell:", spellName, "In range:", tostring(rangeCheck))
-    return rangeCheck
-end
-
-local function currentlyActive(spell)
-    if not mq.TLO.Target() then
-        print("No target selected.")
-        return false -- No target to check
-    end
-
-    local spellName = mq.TLO.Spell(spell).Name()
-    if not spellName then
-        print("Spell not found:", spell)
-        return false -- Spell doesn't exist or was not found
-    end
-
-    -- Safely get the buff count with a default of 0 if nil
-    local buffCount = mq.TLO.Target.BuffCount() or 0
-    for i = 1, buffCount do
-        if mq.TLO.Target.Buff(i).Name() == spellName then
-            return true -- Spell is active on the target
-        end
-    end
-
-    return false -- Spell is not active on the target
 end
 
 function tank.tankRoutine()
@@ -175,10 +120,9 @@ function tank.tankRoutine()
             debugPrint("Target set to:", target.CleanName())
         end
 
-        if not mq.TLO.Target() or mq.TLO.Target() and mq.TLO.Target.ID() ~= target.ID() then
+        if not mq.TLO.Target() or (mq.TLO.Target() and mq.TLO.Target.ID() ~= target.ID()) then
             debugPrint("No target selected; exiting combat loop.")
             return
-
         elseif mq.TLO.Target() and mq.TLO.Target.Distance() ~= nil and mq.TLO.Target.Distance() <= gui.tankRange and mq.TLO.Target.LineOfSight() and not mq.TLO.Stick.Active() then
          debugPrint("Not stuck to target; initiating stick command.")
 
@@ -217,6 +161,16 @@ function tank.tankRoutine()
                 mq.delay(100)
                 mq.cmd("/squelch /nav off")
                 return
+            end
+
+            if mq.TLO.Target() and target and (mq.TLO.Target.ID() ~= target.ID() or mq.TLO.Target.Type() ~= "NPC") then
+                mq.cmdf("/target id %d", target.ID())
+                mq.delay(200)
+            end
+
+            if mq.TLO.Target() and not mq.TLO.Target.Dead() and not mq.TLO.Stick.Active() and mq.TLO.Target.Distance() <= gui.tankRange then
+                mq.cmdf("/stick front %d uw", stickDistance)
+                mq.delay(100, function() return mq.TLO.Stick.Active() end)
             end
 
             if mq.TLO.Target() and mq.TLO.Target.Distance() ~= nil and  mq.TLO.Target.Distance() <= gui.tankRange and mq.TLO.Target.LineOfSight() and not mq.TLO.Me.Combat() then
@@ -277,28 +231,28 @@ function tank.tankRoutine()
 
             local lastStickDistance = nil
 
-            if mq.TLO.Target() and mq.TLO.Stick() == "ON" then
+            if mq.TLO.Target() and mq.TLO.Stick.Active() then
                 local targetDistance = mq.TLO.Target.Distance()
                 
                 -- Check if stickDistance has changed
-                if lastStickDistance ~= stickDistance then
+                if lastStickDistance and lastStickDistance ~= stickDistance then
                     lastStickDistance = stickDistance
                     mq.cmdf("/squelch /stick moveback %s", stickDistance)
                 end
         
                 -- Check if the target distance is out of bounds and adjust as necessary
-                if mq.TLO.Target.ID() then
-                    if targetDistance > upperBound then
+                if mq.TLO.Target() and not mq.TLO.Target.Dead() then
+                    if mq.TLO.Target() and targetDistance > upperBound then
                         mq.cmdf("/squelch /stick moveback %s", stickDistance)
                         mq.delay(100)
-                    elseif targetDistance < lowerBound then
+                    elseif mq.TLO.Target() and targetDistance < lowerBound then
                         mq.cmdf("/squelch /stick moveback %s", stickDistance)
                         mq.delay(100)
                     end
                 end
             end
 
-            if target.Dead() then
+            if target and target.Dead() then
                 debugPrint("Target is dead; exiting combat loop.")
                 break
             end

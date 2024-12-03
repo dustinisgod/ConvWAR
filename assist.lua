@@ -1,21 +1,12 @@
 local mq = require('mq')
 local gui = require('gui')
 local utils = require('utils')
-local pull = require('pull')
 
 local assist = {}
-
-local charLevel = mq.TLO.Me.Level()
 
 function assist.assistRoutine()
 
     if not gui.botOn or not gui.assistMelee then
-        return
-    end
-
-    if gui.pullOn and pull.campQueueCount < 0 then
-        return
-    elseif gui.pullOn and gui.keepMobsInCamp and gui.keepMobsInCampAmount < pull.campQueueCount then
         return
     end
 
@@ -35,19 +26,19 @@ function assist.assistRoutine()
     end
 
     -- Re-check the target after assisting to confirm it's an NPC within range
-    if not mq.TLO.Target() or mq.TLO.Target.Type() ~= "NPC" then
+    if not mq.TLO.Target() or (mq.TLO.Target() and  mq.TLO.Target.Type() ~= "NPC") then
         return
     end
 
     if mq.TLO.Target() and mq.TLO.Target.PctHPs() <= gui.assistPercent and mq.TLO.Target.Distance() <= gui.assistRange and mq.TLO.Stick() == "OFF" and not mq.TLO.Target.Mezzed() then
-        if gui.stickFront then
+        if mq.TLO.Target() and gui.stickFront then
             mq.cmd('/nav stop')
             mq.delay(100)
             mq.cmd("/stick moveback 0")
             mq.delay(100)
             mq.cmdf("/stick front %d uw", gui.stickDistance)
             mq.delay(100)
-        elseif gui.stickBehind then
+        elseif mq.TLO.Target() and gui.stickBehind then
             mq.cmd('/nav stop')
             mq.delay(100)
             mq.cmd("/stick moveback 0")
@@ -56,7 +47,7 @@ function assist.assistRoutine()
             mq.delay(100)
         end
 
-        while mq.TLO.Target() and mq.TLO.Target.Distance() > gui.stickDistance and mq.TLO.Stick() == "ON" do
+        while mq.TLO.Target() and mq.TLO.Target.Distance() > gui.stickDistance and mq.TLO.Stick.Active() do
             mq.delay(10)
         end
 
@@ -72,6 +63,11 @@ function assist.assistRoutine()
     end
 
     while mq.TLO.Me.CombatState() == "COMBAT" and mq.TLO.Target() and not mq.TLO.Target.Dead() do
+
+        -- Re-check the target after assisting to confirm it's an NPC within range
+        if not mq.TLO.Target() or (mq.TLO.Target() and  mq.TLO.Target.Type() ~= "NPC") then
+            return
+        end
 
         if mq.TLO.Target() and not mq.TLO.Target.Mezzed() and mq.TLO.Target.PctHPs() <= gui.assistPercent and mq.TLO.Target.Distance() <= gui.assistRange then
             mq.cmd("/squelch /attack on")
@@ -91,24 +87,24 @@ function assist.assistRoutine()
 
         local lastStickDistance = nil
 
-        if mq.TLO.Target() and mq.TLO.Stick() == "ON" then
+        if mq.TLO.Target() and mq.TLO.Stick.Active() then
             local stickDistance = gui.stickDistance -- current GUI stick distance
             local lowerBound = stickDistance * 0.9
             local upperBound = stickDistance * 1.1
             local targetDistance = mq.TLO.Target.Distance()
             
             -- Check if stickDistance has changed
-            if lastStickDistance ~= stickDistance then
+            if lastStickDistance and lastStickDistance ~= stickDistance then
                 lastStickDistance = stickDistance
                 mq.cmdf("/squelch /stick moveback %s", stickDistance)
             end
-    
+
             -- Check if the target distance is out of bounds and adjust as necessary
-            if mq.TLO.Target.ID() then
-                if targetDistance > upperBound then
+            if mq.TLO.Target() and not mq.TLO.Target.Dead() then
+                if mq.TLO.Target() and targetDistance > upperBound then
                     mq.cmdf("/squelch /stick moveback %s", stickDistance)
                     mq.delay(100)
-                elseif targetDistance < lowerBound then
+                elseif mq.TLO.Target() and targetDistance < lowerBound then
                     mq.cmdf("/squelch /stick moveback %s", stickDistance)
                     mq.delay(100)
                 end
