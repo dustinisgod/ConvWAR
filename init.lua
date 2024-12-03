@@ -26,7 +26,7 @@ commands.initALL()
 local toggleboton = gui.botOn or false
 
 local function returnChaseToggle()
-    if gui.botOn and gui.returnToCamp and not toggleboton then
+    if gui.botOn and gui.returntocamp and not toggleboton then
         if nav.campLocation == nil then
             nav.setCamp()
             toggleboton = true
