@@ -220,14 +220,14 @@ function tank.tankRoutine()
                     mq.delay(100)
                 end
 
-                if mq.TLO.Target() and mq.TLO.Target.Distance() <= gui.tankRange then
-                    local slam = "Slam"
-                    local kick = "Kick"
-                    if mq.TLO.Target() and mq.TLO.Me.AbilityReady(slam) and mq.TLO.Me.Race() == "Ogre" then
-                        mq.cmdf('/doability %s', slam)
-                    elseif mq.TLO.Target() and mq.TLO.Me.AbilityReady(kick) and not mq.TLO.Me.Race() == "Ogre" then
-                        mq.cmdf('/doability %s', kick)
-                    end
+                if mq.TLO.Target() and mq.TLO.Me.AbilityReady("Bash")() and mq.TLO.Me.Inventory('Offhand').Type() == "Shield" then
+                    debugPrint("Using Bash ability.")
+                    mq.cmd("/doability Bash")
+                    mq.delay(100)
+                elseif mq.TLO.Target() and mq.TLO.Me.AbilityReady("Slam")() and mq.TLO.Me.Inventory('Offhand').Type() ~= "Shield" and mq.TLO.Me.Race() == "Ogre" then
+                    debugPrint("Using Slam ability.")
+                    mq.cmd("/doability Slam")
+                    mq.delay(100)
                 end
             end
 
