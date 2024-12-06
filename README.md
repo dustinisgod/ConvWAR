@@ -1,3 +1,5 @@
+version=1.0.0
+
 # Convergence Warrior Bot Command Guide
 
 ### Start Script
